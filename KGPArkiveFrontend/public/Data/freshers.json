@@ -1,0 +1,92 @@
+{
+  "subjects": [
+    {"title": "Advanced Calculus",
+      "NPTEL": "https://youtube.com/playlist?list=PLbRMhDVUMngeVrxtbBz-n8HvP8KAWBpI5&si=NGhORrzuPyZ_Is3O",
+      "notes": "drivelink",
+      "resources": "drivelink",
+      "books":"drivelink",
+      "tutorial":"",
+      "mytutorial":"",
+      "videos": [{
+        
+      }]
+    },
+    {"title": "Basic Engineering Mechanics",
+      "NPTEL": "https://youtube.com/playlist?list=PLOSWwFV98rfKXq2KBphJz95rao7q8PpwT&si=HqgEUCOwC1aW3Jy3",
+      "notes": "https://drive.google.com/drive/folders/1-jK7fY34f0GaURYDuZkMjPtUgbbqawU6?usp=sharing",
+      "resources": "https://drive.google.com/drive/folders/1QpRY4T9H4BoOpxnkYRso1HK04OQkUffP?usp=drive_link",
+      "books":"https://drive.google.com/file/d/1OThs2rjU_WNCBmmnHWcLIcCJQ0bqKbYD/view?usp=sharing",
+      "tutorial":"https://drive.google.com/drive/folders/1y4zlcmSIubPiufRFEEDJtbc0OhNrXGsf?usp=drive_link",
+      "mytutorial":"https://drive.google.com/drive/folders/1-jK7fY34f0GaURYDuZkMjPtUgbbqawU6?usp=sharing",
+      "videos": [{
+        
+      }]
+    },
+    {"title": "Programming & Data Structure",
+      "NPTEL": "",
+      "notes": "",
+      "resources": "",
+      "books":"",
+      "tutorial":"",
+      "mytutorial":"",
+      "videos": [{
+        
+      }]
+    },
+    {"title": "Physics of Waves",
+      "NPTEL": "https://youtube.com/playlist?list=PL30D1917C52D9F9B9&si=zpA99da780-MpIJQ",
+      "notes": "",
+      "resources": "",
+      "books":"",
+      "tutorial":"https://drive.google.com/drive/folders/1isk5yssxTSrh2p4WmE_c8jnzmKhpodmp?usp=drive_link",
+      "mytutorial":"https://drive.google.com/drive/folders/1K_I8wzlKRpvcez7FbpP5ewJLRolZzRoM?usp=drive_link",
+      "videos": [{
+        
+      }]
+    },
+    {"title": "Environmental Science",
+      "NPTEL": "",
+      "notes": "https://drive.google.com/drive/folders/1Q8Qy0gj_J3JLdeXsKTRh1T--MbEjD12G?usp=drive_link",
+      "resources": "",
+      "books":"",
+      "tutorial":"",
+      "mytutorial":"https://drive.google.com/drive/folders/1Q8Qy0gj_J3JLdeXsKTRh1T--MbEjD12G?usp=drive_link",
+      "videos": [{
+        
+      }]
+    },
+    {"title": "Linear Algebra Numerical Analysis Complex Analysis",
+      "NPTEL": "https://youtube.com/playlist?list=PLbRMhDVUMngdVprk_HvTKA_F1pe9UPlEy&si=_I7g7uSm_1E1JvWj",
+      "notes": "",
+      "resources": "",
+      "books":"",
+      "tutorial":"https://drive.google.com/drive/folders/1FqWgRY_MIWSh34gP1JOrXKQyxTnfhfE3?usp=drive_link",
+      "mytutorial":"https://drive.google.com/file/d/1p7oxfP5J7sS0YzbHdAYcPJonmjoIBuFF/view?usp=drive_link",
+      "videos": [{
+        
+      }]
+    },
+    {"title": "Electrical Technology",
+      "NPTEL": "https://youtube.com/playlist?list=PLbRMhDVUMngfdEXVcdf_ijj2Eub-UHs_y&si=WwyqKi2HkqxxkDOU",
+      "notes": "https://drive.google.com/drive/folders/1lqvkTpbUpL90wjF_pkQu-aPVeT5fVphO?usp=drive_link",
+      "resources": "",
+      "books":"",
+      "tutorial":"https://drive.google.com/drive/folders/1pO6BkWwtA7Y7pPgkmWoJo3jYuEm_tub0?usp=drive_link",
+      "mytutorial":"https://drive.google.com/drive/folders/1BWilqUWK4oQZwM1mWxz2Idlu0qGhY3ur?usp=drive_link",
+      "videos": [{
+        
+      }]
+    },
+    {"title": "Science of Living Systems",
+      "NPTEL": "",
+      "notes": "",
+      "resources": "",
+      "books":"",
+      "tutorial":"",
+      "mytutorial":"",
+      "videos": [{
+        
+      }]
+    }
+  ]
+}
