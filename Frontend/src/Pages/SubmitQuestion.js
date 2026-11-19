@@ -29,7 +29,7 @@ const SubmitQuestion = () => {
     }
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/questions`, {
+      await axios.post(`${API_BASE_URL}/api/questions`, {
         question: question.trim(),
         askedBy: user.username,
       }, {

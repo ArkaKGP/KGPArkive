@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BookOpen, Users, GraduationCap, FileText, ChevronRight, Sparkles, TrendingUp, Clock, Search, X, Lock } from 'lucide-react'
+import { BookOpen, Users, GraduationCap, FileText, ChevronRight, Search, X, Lock } from 'lucide-react'
 import { AuthContext } from '../context/AuthContext' // Adjust path as needed
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000'

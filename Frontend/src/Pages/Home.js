@@ -1,10 +1,9 @@
-import React, { useState, useEffect,useContext } from 'react'
+import React, { useEffect, useContext } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Play, FileText, MessageCircleQuestion, CheckCircle, ArrowRight, BookOpen, Users, Smile } from 'lucide-react'
+import { FileText, MessageCircleQuestion, CheckCircle, ArrowRight, BookOpen, Users } from 'lucide-react'
 import { AuthContext } from '../context/AuthContext' 
 
 const Home = () => {
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false)
   const location = useLocation()
   const { totalCount, answeredCount } = useContext(AuthContext)
 
@@ -66,10 +65,6 @@ const Home = () => {
       textColor: 'text-white'
     }
   ]
-
-  const handleVideoPlay = () => {
-    setIsVideoPlaying(true)
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">

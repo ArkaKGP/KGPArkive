@@ -9,7 +9,6 @@ const Questions = () => {
   const { user } = useContext(AuthContext)
 
   // State variables
-  const [questions, setQuestions] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState(null)
