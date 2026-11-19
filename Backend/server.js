@@ -29,6 +29,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health check and root route (for keep-alive ping / cron jobs)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Backend is awake', timestamp: new Date() });
+});
+app.get('/', (req, res) => {
+  res.status(200).send('KGPArkive Backend API is running');
+});
+
 // Routes
 app.use('/api/questions', questionRoutes);
 app.use('/api/auth', authRoutes);
