@@ -11,7 +11,9 @@ if (!mongoUri) {
   process.exit(1);
 }
 
-const frontendDataPath = path.resolve(__dirname, "../../KGPArkiveFrontend/public/Data");
+const frontendDataPath = fs.existsSync(path.resolve(__dirname, "../../Frontend/public/Data"))
+  ? path.resolve(__dirname, "../../Frontend/public/Data")
+  : path.resolve(__dirname, "../../KGPArkiveFrontend/public/Data");
 
 function loadDataFromFile(fileName) {
   const filePath = path.join(frontendDataPath, fileName);

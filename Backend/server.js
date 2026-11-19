@@ -18,7 +18,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "*", // e.g., "https://yourfrontend.com"
+    origin: true, // Dynamically allows Vercel frontend, localhost, etc.
     credentials: true,
   })
 );
