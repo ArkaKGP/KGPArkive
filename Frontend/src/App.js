@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import { AuthProvider } from "./context/AuthContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { prefetchAllData } from './utils/cacheManager';
 
 // Import your components
 import Navbar from './components/Navbar';
@@ -21,6 +22,11 @@ import MyQuestions from './Pages/MyQuestions';
 import Contri from './Pages/contri';
 
 function App() {
+  useEffect(() => {
+    // Pre-cache courses and questions into localStorage on app load
+    prefetchAllData();
+  }, []);
+
   return (
     <AuthProvider>
     <Router>

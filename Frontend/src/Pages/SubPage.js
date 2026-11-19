@@ -33,13 +33,35 @@ const SubPage = ({ subject }) => {
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
+          {subject?.code && (
+            <div className="inline-block mb-3 px-3.5 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-mono font-bold tracking-wide border border-blue-200 shadow-sm">
+              {subject.code}
+            </div>
+          )}
           <h1 className="text-4xl md:text-6xl font-bold text-gray-800 mb-4">
             {subject?.title}
           </h1>
           <div className="w-24 h-1 bg-gray-600 mx-auto rounded-full"></div>
         </div>
 
+        {/* Course Description & Helpful Notes Section */}
+        {subject?.description && subject.description.trim() !== '' && (
+          <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md border border-gray-200 p-6 md:p-8 mb-10 text-left">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">Course Description & Helpful Notes</h2>
+                <p className="text-xs text-gray-500">Curated notes, professor guidance, and course overview</p>
+              </div>
+            </div>
+            <div className="text-gray-700 leading-relaxed whitespace-pre-line text-sm md:text-base bg-gray-50 rounded-xl p-5 border border-gray-100">
+              {subject.description}
+            </div>
+          </div>
+        )}
 
         {/* Notes Button */}
         <div className="flex justify-center mb-12">

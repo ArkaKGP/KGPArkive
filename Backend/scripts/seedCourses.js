@@ -28,6 +28,33 @@ function loadDataFromFile(fileName) {
   return [];
 }
 
+const defaultSubjectCodes = {
+  "Advanced Calculus": "MA10001",
+  "Basic Engineering Mechanics": "ME10001",
+  "Programming & Data Structure": "CS10001",
+  "Physics of Waves": "PH10001",
+  "Environmental Science": "EV20001",
+  "Linear Algebra Numerical Analysis Complex Analysis": "MA10002",
+  "Electrical Technology": "EE10001",
+  "Science of Living Systems": "BS10001",
+  "Analog Electronic Circuits": "EC21101",
+  "Signals and Systems": "EC21103",
+  "Network Analysis": "EE21101",
+  "Digital Electronic Circuits": "EC21102",
+  "Measurement and Electronic Instruments": "EE21103",
+  "Data Communication": "EC31001",
+  "Digital Signal Processing": "EC31003",
+  "Instrumentation Devices": "EE31001",
+  "Control Systems Engineering": "EE31003",
+  "Probability ans Statistics": "MA20106",
+  "Probability and Statistics": "MA20106",
+  "Economics": "HS20001",
+  "Theory of Computations": "CS21004",
+  "Basic Electronics": "EC21001",
+  "English as Second Language": "HS10001",
+  "Application of Machine Learning in Biological Systems": "BT20001",
+};
+
 async function seed() {
   try {
     console.log("Connecting to MongoDB...");
@@ -62,7 +89,10 @@ async function seed() {
           .replace(/\s+/g, "-")
           .replace(/[^\w-]/g, "");
 
+        const code = subj.code || defaultSubjectCodes[subj.title.trim()] || undefined;
+
         const courseData = {
+          code: code,
           title: subj.title.trim(),
           slug: slug,
           category: cat.name,
@@ -76,8 +106,12 @@ async function seed() {
           videos: cleanedVideos,
         };
 
+        const query = code
+          ? { $or: [{ code }, { title: courseData.title, category: courseData.category }] }
+          : { title: courseData.title, category: courseData.category };
+
         await Course.findOneAndUpdate(
-          { title: courseData.title, category: courseData.category },
+          query,
           courseData,
           { upsert: true, new: true, setDefaultsOnInsert: true }
         );

@@ -2,6 +2,13 @@ const mongoose = require("mongoose");
 
 const CourseSchema = new mongoose.Schema(
   {
+    code: {
+      type: String,
+      uppercase: true,
+      trim: true,
+      index: true,
+      sparse: true,
+    },
     title: {
       type: String,
       required: true,
@@ -79,6 +86,9 @@ CourseSchema.pre("save", function (next) {
 });
 
 // Virtual aliases for compatibility
+CourseSchema.virtual("subjectCode").get(function () {
+  return this.code;
+});
 CourseSchema.virtual("section").get(function () {
   return this.category;
 });

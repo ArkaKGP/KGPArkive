@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookOpen, Users, GraduationCap, FileText, ChevronRight, Search, X, Lock } from 'lucide-react'
 import { AuthContext } from '../context/AuthContext' // Adjust path as needed
+import { getCachedCoursesByCategory, setCachedCourses, getCachedCourses } from '../utils/cacheManager'
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000'
 
@@ -9,8 +10,8 @@ const Acads = () => {
   const navigate = useNavigate()
   const { user, loading: authLoading } = useContext(AuthContext)
   const [activeSection, setActiveSection] = useState('freshers')
-  const [subjects, setSubjects] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [subjects, setSubjects] = useState(() => getCachedCoursesByCategory('freshers'))
+  const [loading, setLoading] = useState(() => getCachedCoursesByCategory('freshers').length === 0)
   const [error, setError] = useState(null)
   const [searchInput, setSearchInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -57,7 +58,24 @@ const Acads = () => {
     if (user) {
       loadSectionData(activeSection)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSection, user])
+
+  // Listen for background cache updates
+  useEffect(() => {
+    const handleCoursesUpdated = (e) => {
+      const updatedAll = e.detail || []
+      const sectionCourses = updatedAll.filter(
+        c => (c.category || c.section || '').toLowerCase().trim() === activeSection.toLowerCase().trim()
+      )
+      if (sectionCourses.length > 0) {
+        setSubjects(sectionCourses)
+        setLoading(false)
+      }
+    }
+    window.addEventListener('kgp_courses_updated', handleCoursesUpdated)
+    return () => window.removeEventListener('kgp_courses_updated', handleCoursesUpdated)
+  }, [activeSection])
 
   // Clear search when section changes
   useEffect(() => {
@@ -67,7 +85,14 @@ const Acads = () => {
   }, [activeSection])
 
   const loadSectionData = async (sectionId) => {
-    setLoading(true)
+    // Check if we already have cached data in localStorage
+    const cached = getCachedCoursesByCategory(sectionId)
+    if (cached && cached.length > 0) {
+      setSubjects(cached)
+      setLoading(false)
+    } else {
+      setLoading(true)
+    }
     setError(null)
     
     try {
@@ -80,8 +105,20 @@ const Acads = () => {
       const data = await response.json()
       const loadedSubjects = data.subjects || data.courses || (Array.isArray(data) ? data : [])
       setSubjects(loadedSubjects)
+
+      // Merge and update cached courses in localStorage
+      const allCached = getCachedCourses()
+      const otherCourses = allCached.filter(
+        c => (c.category || c.section || '').toLowerCase().trim() !== sectionId.toLowerCase().trim()
+      )
+      setCachedCourses([...otherCourses, ...loadedSubjects])
     } catch (err) {
       console.warn('Backend fetch failed, attempting fallback to local data:', err.message)
+      if (cached && cached.length > 0) {
+        // Keep cached data, do not wipe
+        setLoading(false)
+        return
+      }
       try {
         const section = sections.find(s => s.id === sectionId)
         if (section?.file) {
@@ -393,10 +430,15 @@ const Acads = () => {
                     <div className="relative z-10">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1 pr-4">
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <h3 className="text-xl font-bold text-gray-900 group-hover:text-gray-700 transition-colors duration-300 leading-tight">
                               {subject.title}
                             </h3>
+                            {subject.code && (
+                              <span className="text-xs font-mono font-bold px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md">
+                                {subject.code}
+                              </span>
+                            )}
                           </div>
                           <div className="h-1 w-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full group-hover:w-full transition-all duration-500"></div>
                         </div>
@@ -404,12 +446,6 @@ const Acads = () => {
                           <ChevronRight className="h-5 w-5 text-white group-hover:translate-x-1 transition-all duration-300" />
                         </div>
                       </div>
-                      
-                      {subject.description && (
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                          {subject.description}
-                        </p>
-                      )}
                       
                     </div>
                   </div>

@@ -1,6 +1,12 @@
 const mongoose = require("mongoose");
 
 const ContributedSubjectSchema = new mongoose.Schema({
+  code: {
+    type: String,
+    uppercase: true,
+    trim: true,
+    default: "",
+  },
   title: {
     type: String,
     required: true,

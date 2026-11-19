@@ -121,6 +121,7 @@ const MyQuestions = () => {
 
   useEffect(() => {
     fetchMyQuestions()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
   if (!user && !loading) {

@@ -21,6 +21,7 @@ exports.createContribution = async (req, res) => {
       .filter((s) => (s.title && s.title.trim()) || (s.subjectName && s.subjectName.trim()))
       .map((s) => {
         const title = (s.title || s.subjectName).trim();
+        const code = (s.code || s.subjectCode || "").trim().toUpperCase();
         const category = (s.category || "semesters").toLowerCase().trim();
         const notes = (s.notes || s.driveLink || "").trim();
         const resources = (s.resources || "").trim();
@@ -32,6 +33,7 @@ exports.createContribution = async (req, res) => {
         const videos = Array.isArray(s.videos) ? s.videos : [];
 
         return {
+          code,
           title,
           category,
           notes,
@@ -69,14 +71,24 @@ exports.createContribution = async (req, res) => {
         .replace(/\s+/g, "-")
         .replace(/[^\w-]/g, "");
 
-      const existingCourse = await Course.findOne({
-        title: { $regex: new RegExp(`^${sub.title}$`, "i") },
-        category: sub.category,
-      });
+      // Check if course with same code or title exists
+      let existingCourse = null;
+      if (sub.code) {
+        existingCourse = await Course.findOne({ code: sub.code });
+      }
+      if (!existingCourse) {
+        existingCourse = await Course.findOne({
+          title: { $regex: new RegExp(`^${sub.title}$`, "i") },
+          category: sub.category,
+        });
+      }
 
       if (existingCourse) {
         // Enrich existing course with non-empty contributed fields
         const updateFields = {};
+        if (sub.code && !existingCourse.code) {
+          updateFields.code = sub.code;
+        }
         if (sub.notes && (!existingCourse.notes || existingCourse.notes === "drivelink")) {
           updateFields.notes = sub.notes;
         }
@@ -105,6 +117,7 @@ exports.createContribution = async (req, res) => {
       } else {
         // Create new Course
         await Course.create({
+          code: sub.code || undefined,
           title: sub.title,
           slug,
           category: sub.category,

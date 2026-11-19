@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, BookOpen } from 'lucide-react'
 import SubPage from './SubPage'
+import { getCachedCourseBySlugOrCode } from '../utils/cacheManager'
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000'
 
@@ -10,10 +11,13 @@ const SubjectPageWrapper = () => {
   const navigate = useNavigate()
   const { subject: subjectSlug } = useParams()
   
-  // Get subject data from navigation state (if available)
+  // Get subject data from navigation state or localStorage pre-cache
   const initialSubject = location.state?.subject
-  const [subjectData, setSubjectData] = useState(initialSubject || null)
-  const [loading, setLoading] = useState(!initialSubject)
+  const cachedMatch = getCachedCourseBySlugOrCode(subjectSlug)
+  const initialData = initialSubject || cachedMatch
+
+  const [subjectData, setSubjectData] = useState(initialData || null)
+  const [loading, setLoading] = useState(!initialData)
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -23,9 +27,16 @@ const SubjectPageWrapper = () => {
       return
     }
 
-    // If navigated directly or refreshed, fetch from backend
+    if (cachedMatch && !subjectData) {
+      setSubjectData(cachedMatch)
+      setLoading(false)
+    }
+
+    // Fetch from backend (stale-while-revalidate or direct navigation)
     const fetchSubject = async () => {
-      setLoading(true)
+      if (!initialData) {
+        setLoading(true)
+      }
       setError(null)
       try {
         const response = await fetch(`${API_BASE_URL}/api/courses/${subjectSlug}`)
@@ -36,11 +47,15 @@ const SubjectPageWrapper = () => {
         const found = data.course || data.subject
         if (found) {
           setSubjectData(found)
-        } else {
+        } else if (!initialData) {
           setError('Subject not found')
         }
       } catch (err) {
         console.warn('Backend fetch failed, attempting local fallback:', err.message)
+        if (initialData) {
+          // If we have cached data, keep displaying it
+          return
+        }
         // Fallback: search through local JSON files
         try {
           const files = ['/Data/freshers.json', '/Data/sems.json', '/Data/commons.json']
@@ -51,7 +66,8 @@ const SubjectPageWrapper = () => {
               const data = await res.json()
               const match = (data.subjects || []).find((s) => {
                 const slug = s.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')
-                return slug === subjectSlug
+                const code = (s.code || '').toLowerCase().trim()
+                return slug === subjectSlug.toLowerCase() || code === subjectSlug.toLowerCase()
               })
               if (match) {
                 foundSubject = match
@@ -73,6 +89,7 @@ const SubjectPageWrapper = () => {
     }
 
     fetchSubject()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialSubject, subjectSlug])
 
   if (loading) {

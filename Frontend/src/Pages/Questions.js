@@ -1,15 +1,36 @@
-import React, { useState, useEffect, useContext, useRef } from 'react'
+import React, { useState, useEffect, useContext, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MessageCircle, BookOpen, ChevronDown, ChevronUp, Plus, MessageSquare, Loader2, RefreshCw, Reply, Send } from 'lucide-react'
 import { AuthContext } from '../context/AuthContext'
 import toast, { Toaster } from 'react-hot-toast'
+import { getCachedQuestions, setCachedQuestions } from '../utils/cacheManager'
 
 const Questions = () => {
   const navigate = useNavigate()
   const { user } = useContext(AuthContext)
 
+  const QUESTIONS_PER_PAGE = 15
+  const ANSWER_PREVIEW_LENGTH = 150
+
+  // Pre-load from localStorage cache if available
+  const cachedInitial = useMemo(() => getCachedQuestions(), [])
+  const initialAnswered = useMemo(
+    () =>
+      cachedInitial
+        .filter((q) => q.answers && q.answers.length > 0)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+    [cachedInitial]
+  )
+  const initialUnanswered = useMemo(
+    () =>
+      cachedInitial
+        .filter((q) => !q.answers || q.answers.length === 0)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+    [cachedInitial]
+  )
+
   // State variables
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(cachedInitial.length === 0)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState(null)
   const [page, setPage] = useState(1)
@@ -18,13 +39,11 @@ const Questions = () => {
   const [showAnswerForm, setShowAnswerForm] = useState({})
   const [answerTexts, setAnswerTexts] = useState({})
   const [submittingAnswers, setSubmittingAnswers] = useState({})
-  const [answeredQuestions, setAnsweredQuestions] = useState([])
-  const [unansweredQuestions, setUnansweredQuestions] = useState([])
+  const [answeredQuestions, setAnsweredQuestions] = useState(() => initialAnswered.slice(0, QUESTIONS_PER_PAGE))
+  const [unansweredQuestions, setUnansweredQuestions] = useState(() => initialUnanswered.slice(0, 10))
   const [showUnanswered, setShowUnanswered] = useState(false) // New state for toggling unanswered questions on mobile
   const questionRefs = useRef({})
-
-  const QUESTIONS_PER_PAGE = 15
-  const ANSWER_PREVIEW_LENGTH = 150
+  const hasCacheRef = useRef(cachedInitial.length > 0)
 
   // API base URL
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000'
@@ -34,7 +53,9 @@ const Questions = () => {
   const fetchQuestions = async (pageNum = 1, append = false) => {
     try {
       if (pageNum === 1) {
-        setLoading(true)
+        if (!hasCacheRef.current) {
+          setLoading(true)
+        }
       } else {
         setLoadingMore(true)
       }
@@ -52,6 +73,11 @@ const Questions = () => {
       }
 
       const allQuestions = await response.json()
+
+      if (Array.isArray(allQuestions) && allQuestions.length > 0) {
+        setCachedQuestions(allQuestions)
+        hasCacheRef.current = true
+      }
 
       const answered = allQuestions.filter(q => q.answers && q.answers.length > 0)
       const unanswered = allQuestions.filter(q => !q.answers || q.answers.length === 0)
@@ -253,11 +279,28 @@ const Questions = () => {
   }
 
   useEffect(() => {
+    const handleQuestionsUpdated = (e) => {
+      const updated = e.detail || []
+      if (updated.length > 0) {
+        const answered = updated.filter((q) => q.answers && q.answers.length > 0)
+        const unanswered = updated.filter((q) => !q.answers || q.answers.length === 0)
+        answered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        unanswered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        setAnsweredQuestions(answered.slice(0, QUESTIONS_PER_PAGE))
+        setUnansweredQuestions(unanswered.slice(0, 10))
+        setLoading(false)
+        hasCacheRef.current = true
+      }
+    }
+
+    window.addEventListener('kgp_questions_updated', handleQuestionsUpdated)
     const controller = new AbortController()
     fetchQuestions()
     return () => {
+      window.removeEventListener('kgp_questions_updated', handleQuestionsUpdated)
       controller.abort()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (loading && answeredQuestions.length === 0) {

@@ -290,7 +290,7 @@ const defaultSeedData = [
 // Get all courses (with optional category and search filters)
 exports.getAllCourses = async (req, res) => {
   try {
-    const { category, section, search } = req.query;
+    const { category, section, search, code, subjectCode } = req.query;
     const filter = {};
 
     const targetCategory = category || section;
@@ -298,9 +298,18 @@ exports.getAllCourses = async (req, res) => {
       filter.category = targetCategory.toLowerCase().trim();
     }
 
+    const targetCode = (code || subjectCode || "").trim().toUpperCase();
+    if (targetCode) {
+      filter.code = targetCode;
+    }
+
     if (search && search.trim()) {
       const searchRegex = new RegExp(search.trim(), "i");
-      filter.$or = [{ title: searchRegex }, { description: searchRegex }];
+      filter.$or = [
+        { title: searchRegex },
+        { description: searchRegex },
+        { code: searchRegex },
+      ];
     }
 
     const courses = await Course.find(filter).sort({ title: 1 });
@@ -329,6 +338,11 @@ exports.getCourseByIdOrSlug = async (req, res) => {
 
     if (mongoose.Types.ObjectId.isValid(id)) {
       course = await Course.findById(id);
+    }
+
+    if (!course) {
+      // Try finding by subject code (e.g. ET60007)
+      course = await Course.findOne({ code: id.trim().toUpperCase() });
     }
 
     if (!course) {
@@ -364,10 +378,12 @@ exports.getCourseByIdOrSlug = async (req, res) => {
   }
 };
 
-// Create a new course
+// Create a new course or update if subject code exists
 exports.createCourse = async (req, res) => {
   try {
     const {
+      code,
+      subjectCode,
       title,
       category,
       section,
@@ -382,6 +398,7 @@ exports.createCourse = async (req, res) => {
     } = req.body;
 
     const selectedCategory = (category || section || "freshers").toLowerCase().trim();
+    const formattedCode = (code || subjectCode || "").trim().toUpperCase();
 
     if (!title || !title.trim()) {
       return res.status(400).json({
@@ -390,7 +407,52 @@ exports.createCourse = async (req, res) => {
       });
     }
 
+    // Check if course with same subject code or title already exists
+    let existingCourse = null;
+    if (formattedCode) {
+      existingCourse = await Course.findOne({ code: formattedCode });
+    }
+    if (!existingCourse) {
+      existingCourse = await Course.findOne({
+        title: { $regex: new RegExp(`^${title.trim()}$`, "i") },
+        category: selectedCategory,
+      });
+    }
+
+    // If already exists, update details in MongoDB directly
+    if (existingCourse) {
+      const updateFields = {};
+      if (formattedCode) updateFields.code = formattedCode;
+      if (title && title.trim()) updateFields.title = title.trim();
+      if (selectedCategory) updateFields.category = selectedCategory;
+      if (description !== undefined && description !== "") updateFields.description = description.trim();
+      if (NPTEL !== undefined && NPTEL !== "") updateFields.NPTEL = NPTEL.trim();
+      if (notes !== undefined && notes !== "") updateFields.notes = notes.trim();
+      if (resources !== undefined && resources !== "") updateFields.resources = resources.trim();
+      if (books !== undefined && books !== "") updateFields.books = books.trim();
+      if (tutorial !== undefined && tutorial !== "") updateFields.tutorial = tutorial.trim();
+      if (mytutorial !== undefined && mytutorial !== "") updateFields.mytutorial = mytutorial.trim();
+      if (videos && Array.isArray(videos) && videos.length > 0) {
+        updateFields.videos = [...(existingCourse.videos || []), ...videos];
+      }
+
+      const updatedCourse = await Course.findByIdAndUpdate(
+        existingCourse._id,
+        { $set: updateFields },
+        { new: true, runValidators: true }
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: `Course with subject code ${updatedCourse.code || formattedCode} already exists. Details updated directly in MongoDB.`,
+        course: updatedCourse,
+        subject: updatedCourse,
+        isUpdated: true,
+      });
+    }
+
     const newCourse = new Course({
+      code: formattedCode || undefined,
       title: title.trim(),
       category: selectedCategory,
       description: description || "",
@@ -410,6 +472,7 @@ exports.createCourse = async (req, res) => {
       message: "Course created successfully",
       course: savedCourse,
       subject: savedCourse,
+      isUpdated: false,
     });
   } catch (error) {
     console.error("Error creating course:", error);
